@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FarmMind - Irrigation</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <header>
+        <h1>💧 Irrigation Management</h1>
+        <p>Track water usage and irrigation activities</p>
+    </header>
+
+
+    <!-- NAVIGATION -->
+    <nav>
+        <a href="{{ url_for('index') }}">🏠 Dashboard</a>
+        <a href="{{ url_for('crops') }}">🌾 Crops</a>
+        <a href="{{ url_for('expenses') }}">💸 Expenses</a>
+        <a href="{{ url_for('income') }}">💰 Income</a>
+        <a href="{{ url_for('irrigation') }}">💧 Irrigation</a>
+        <a href="{{ url_for('pests') }}">🐛 Pests</a>
+        <a href="{{ url_for('recommendations') }}">🤖 Smart Advice</a>
+        <a href="{{ url_for('analytics') }}">📊 Analytics</a>
+        <a href="{{ url_for('weather') }}">🌦️ Weather</a>
+        <a href="{{ url_for('logout') }}">🚪 Logout</a>
+    </nav>
+
+
+    <!-- SEARCH AND FILTER -->
+    <section class="panel">
+
+        <h2>🔎 Search & Filter Irrigation</h2>
+
+        <input
+            type="text"
+            id="irrigationSearch"
+            placeholder="Search by crop, date or notes..."
+        >
+
+        <select id="irrigationCrop">
+
+            <option value="">
+                All Crops
+            </option>
+
+            {% set crop_names = [] %}
+
+            {% for irrigation in irrigations %}
+
+                {% if irrigation["crop"] not in crop_names %}
+
+                    {% set _ = crop_names.append(irrigation["crop"]) %}
+
+                    <option value="{{ irrigation['crop'] }}">
+                        {{ irrigation["crop"] }}
+                    </option>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </select>
+
+        <p id="noResults" style="display: none;">
+            ❌ No matching irrigation records found.
+        </p>
+
+    </section>
+
+
+    <!-- ADD IRRIGATION -->
+    <section class="panel">
+
+        <h2>➕ Add Irrigation Record</h2>
+
+        <form method="POST">
+
+            <label for="crop">
+                Crop
+            </label>
+
+            <input
+                type="text"
+                id="crop"
+                name="crop"
+                placeholder="Example: Rice"
+                required
+            >
+
+
+            <label for="irrigation_date">
+                Irrigation Date
+            </label>
+
+            <input
+                type="date"
+                id="irrigation_date"
+                name="irrigation_date"
+                required
+            >
+
+
+            <label for="water_liters">
+                Water Used (Liters)
+            </label>
+
+            <input
+                type="number"
+                id="water_liters"
+                name="water_liters"
+                placeholder="Example: 1000"
+                min="0"
+                step="0.01"
+                required
+            >
+
+
+            <label for="notes">
+                Notes
+            </label>
+
+            <textarea
+                id="notes"
+                name="notes"
+                placeholder="Example: Morning irrigation"
+            ></textarea>
+
+
+            <button type="submit">
+                💧 Add Irrigation
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- IRRIGATION RECORDS -->
+    <section class="panel">
+
+        <h2>📋 Irrigation Records</h2>
+
+        {% if irrigations %}
+
+        <table id="irrigationTable">
+
+            <thead>
+
+                <tr>
+    <th>Crop</th>
+    <th>Date</th>
+    <th>Water Used</th>
+    <th>Notes</th>
+    <th>Action</th>
+</tr>
+            </thead>
+
+
+            <tbody>
+
+            {% for irrigation in irrigations %}
+
+                <tr>
+
+                    <td>
+                        {{ irrigation["crop"] }}
+                    </td>
+
+                    <td>
+                        {{ irrigation["irrigation_date"] or "-" }}
+                    </td>
+
+                    <td>
+                        {{ irrigation["water_liters"] }} L
+                    </td>
+
+                    <td>
+                        {{ irrigation["notes"] or "-" }}
+                    </td>
+
+                    <td>
+    <a href="{{ url_for('delete_irrigation', id=irrigation['id']) }}"
+       onclick="return confirm('Delete this record?')">
+        Delete
+    </a>
+</td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <p>
+            💧 No irrigation records added yet.
+        </p>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer>
+
+        <p>
+            🌱 FarmMind V3
+        </p>
+
+    </footer>
+
+</div>
+
+
+<!-- SEARCH AND FILTER JAVASCRIPT -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchBox =
+        document.getElementById("irrigationSearch");
+
+    const cropFilter =
+        document.getElementById("irrigationCrop");
+
+    const table =
+        document.getElementById("irrigationTable");
+
+    const noResults =
+        document.getElementById("noResults");
+
+
+    if (!searchBox || !cropFilter || !table) {
+        return;
+    }
+
+
+    function filterIrrigation() {
+
+        const searchText =
+            searchBox.value
+                .toLowerCase()
+                .trim();
+
+        const selectedCrop =
+            cropFilter.value
+                .toLowerCase()
+                .trim();
+
+        const rows =
+            table.querySelectorAll("tbody tr");
+
+        let visibleRows = 0;
+
+
+        rows.forEach(function (row) {
+
+            const cells =
+                row.querySelectorAll("td");
+
+
+            if (cells.length < 4) {
+                return;
+            }
+
+
+            const crop =
+                cells[0].textContent
+                    .toLowerCase()
+                    .trim();
+
+            const date =
+                cells[1].textContent
+                    .toLowerCase()
+                    .trim();
+
+            const water =
+                cells[2].textContent
+                    .toLowerCase()
+                    .trim();
+
+            const notes =
+                cells[3].textContent
+                    .toLowerCase()
+                    .trim();
+
+
+            const rowText =
+                crop + " " +
+                date + " " +
+                water + " " +
+                notes;
+
+
+            const searchMatch =
+                searchText === "" ||
+                rowText.includes(searchText);
+
+
+            const cropMatch =
+                selectedCrop === "" ||
+                crop === selectedCrop;
+
+
+            if (searchMatch && cropMatch) {
+
+                row.style.display = "";
+                visibleRows++;
+
+            } else {
+
+                row.style.display = "none";
+
+            }
+
+        });
+
+
+        if (noResults) {
+
+            if (visibleRows === 0) {
+
+                noResults.style.display = "block";
+
+            } else {
+
+                noResults.style.display = "none";
+
+            }
+
+        }
+
+    }
+
+
+    searchBox.addEventListener(
+        "input",
+        filterIrrigation
+    );
+
+
+    cropFilter.addEventListener(
+        "change",
+        filterIrrigation
+    );
+
+});
+
+</script>
+
+
+</body>
+
+</html>

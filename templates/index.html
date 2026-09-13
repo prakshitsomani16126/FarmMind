@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FarmMind - Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <header>
+        <h1>🌱 FarmMind</h1>
+        <p>Smart Farming Management System</p>
+    </header>
+
+
+    <!-- NAVIGATION -->
+    <nav>
+        <a href="{{ url_for('index') }}">🏠 Dashboard</a>
+        <a href="{{ url_for('crops') }}">🌾 Crops</a>
+        <a href="{{ url_for('expenses') }}">💰 Expenses</a>
+        <a href="{{ url_for('income') }}">📈 Income</a>
+        <a href="{{ url_for('irrigation') }}">💧 Irrigation</a>
+        <a href="{{ url_for('pests') }}">🐛 Pests</a>
+        <a href="{{ url_for('recommendations') }}">🤖 Smart Advice</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+        <a href="{{ url_for('weather') }}">Weather</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+
+
+    <!-- DASHBOARD CARDS -->
+
+    <section class="cards">
+
+        <div class="card">
+            <h3>🌾 Total Crops</h3>
+            <p>{{ crops|length }}</p>
+        </div>
+
+        <div class="card">
+            <h3>💸 Total Expenses</h3>
+            <p>₹ {{ "%.2f"|format(total_expense) }}</p>
+        </div>
+
+        <div class="card">
+            <h3>💰 Total Income</h3>
+            <p>₹ {{ "%.2f"|format(total_income) }}</p>
+        </div>
+
+        <div class="card">
+            <h3>📊 Profit / Loss</h3>
+
+            {% if profit >= 0 %}
+                <p>₹ {{ "%.2f"|format(profit) }}</p>
+            {% else %}
+                <p>- ₹ {{ "%.2f"|format(profit|abs) }}</p>
+            {% endif %}
+
+        </div>
+
+    </section>
+
+
+    <!-- QUICK ACTIONS -->
+
+    <section class="panel">
+
+        <h2>Quick Actions</h2>
+
+        <div class="actions">
+
+            <a href="{{ url_for('crops') }}" class="button">
+                🌾 Add Crop
+            </a>
+
+            <a href="{{ url_for('expenses') }}" class="button">
+                💸 Add Expense
+            </a>
+
+            <a href="{{ url_for('income') }}" class="button">
+                💰 Add Income
+            </a>
+
+            <a href="{{ url_for('irrigation') }}" class="button">
+                💧 Add Irrigation
+            </a>
+
+            <a href="{{ url_for('pests') }}" class="button">
+                🐛 Report Pest
+            </a>
+
+            <a href="{{ url_for('recommendations') }}" class="button">
+                🤖 Get Smart Advice
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- CHARTS -->
+
+    <section class="charts">
+
+        <div class="panel">
+
+            <h2>💰 Financial Overview</h2>
+
+            <canvas id="financeChart"></canvas>
+
+        </div>
+
+
+        <div class="panel">
+
+            <h2>📊 Farming Decisions</h2>
+
+            <canvas id="decisionChart"></canvas>
+
+        </div>
+
+    </section>
+
+
+    <!-- CROP TABLE -->
+
+    <section class="panel">
+
+        <h2>🌱 Your Crops</h2>
+
+        {% if crops %}
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Crop</th>
+                    <th>Variety</th>
+                    <th>Field</th>
+                    <th>Sowing Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for crop in crops %}
+
+                <tr>
+
+                    <td>{{ crop["name"] }}</td>
+
+                    <td>{{ crop["variety"] or "-" }}</td>
+
+                    <td>{{ crop["field_name"] or "-" }}</td>
+
+                    <td>{{ crop["sowing_date"] or "-" }}</td>
+
+                    <td>{{ crop["status"] or "-" }}</td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <p>No crops added yet.</p>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- DECISIONS -->
+
+    <section class="panel">
+
+        <h2>🧠 Farming Decisions</h2>
+
+        {% if decisions %}
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Crop</th>
+                    <th>Decision</th>
+                    <th>Weather</th>
+                    <th>Outcome</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for decision in decisions %}
+
+                <tr>
+
+                    <td>{{ decision["crop"] }}</td>
+
+                    <td>{{ decision["decision"] }}</td>
+
+                    <td>{{ decision["weather"] }}</td>
+
+                    <td>{{ decision["outcome"] }}</td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <p>No farming decisions recorded yet.</p>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        <p>🌱 FarmMind V3 | Smart Agriculture Management</p>
+
+    </footer>
+
+</div>
+
+
+<!-- CHART JAVASCRIPT -->
+
+<script>
+
+    // Financial Chart
+
+    const financeCtx =
+        document.getElementById("financeChart");
+
+    new Chart(financeCtx, {
+
+        type: "bar",
+
+        data: {
+
+            labels: [
+                "Expenses",
+                "Income",
+                "Profit"
+            ],
+
+            datasets: [{
+
+                label: "Amount (₹)",
+
+                data: [
+                     Number("{{ total_expense }}"),
+                     Number("{{ total_income }}"),
+                     Number("{{ profit }}")
+                ]
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+                    display: false
+                }
+
+            }
+
+        }
+
+    });
+
+
+    // Decision Chart
+
+    const decisionCtx =
+        document.getElementById("decisionChart");
+
+    new Chart(decisionCtx, {
+
+        type: "doughnut",
+
+        data: {
+
+            labels: [
+                "Successful",
+                "Failed"
+            ],
+
+            datasets: [{
+
+                data: [
+                    Number("{{ successful }}"),
+                    Number("{{ failed }}")
+]
+
+            }]
+
+        },
+        options: {
+
+            responsive: true
+
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

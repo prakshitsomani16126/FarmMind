@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FarmMind - Weather</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<header>
+    <h1>🌦️ FarmMind Weather</h1>
+
+    <nav>
+        <a href="{{ url_for('index') }}">🏠 Dashboard</a>
+        <a href="{{ url_for('crops') }}">🌾 Crops</a>
+        <a href="{{ url_for('expenses') }}">💰 Expenses</a>
+        <a href="{{ url_for('income') }}">📈 Income</a>
+        <a href="{{ url_for('irrigation') }}">💧 Irrigation</a>
+        <a href="{{ url_for('pests') }}">🐛 Pests</a>
+        <a href="{{ url_for('recommendations') }}">🤖 Smart Advice</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+        <a href="{{ url_for('weather') }}">Weather</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+</header>
+
+
+<main class="container">
+
+    <section class="panel">
+
+        <h2>🌍 Check Current Weather</h2>
+
+        <form method="POST">
+
+            <label for="city">Enter City</label>
+
+            <input
+                type="text"
+                id="city"
+                name="city"
+                placeholder="Example: Shivamogga"
+                value="{{ city }}"
+                required
+            >
+
+            <button type="submit">
+                Check Weather
+            </button>
+
+        </form>
+
+    </section>
+
+
+    {% if error %}
+
+    <section class="panel">
+
+        <div class="recommendation-result">
+            ❌ {{ error }}
+        </div>
+
+    </section>
+
+    {% endif %}
+
+
+    {% if weather_data %}
+
+    <section class="panel">
+
+        <h2>
+            🌤️ Weather in
+            {{ weather_data.city }}, {{ weather_data.country }}
+        </h2>
+
+
+        <div class="cards">
+
+            <div class="card">
+
+                <h3>🌡️ Temperature</h3>
+
+                <p>
+                    {{ weather_data.temperature }} °C
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>💧 Humidity</h3>
+
+                <p>
+                    {{ weather_data.humidity }} %
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>🌧️ Precipitation</h3>
+
+                <p>
+                    {{ weather_data.precipitation }} mm
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <h3>💨 Wind Speed</h3>
+
+                <p>
+                    {{ weather_data.wind }} km/h
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    {% endif %}
+
+</main>
+
+
+<footer>
+
+    <p>
+        FarmMind © 2026 | Smart Farm Management System
+    </p>
+
+</footer>
+
+</body>
+</html>
